@@ -1,0 +1,31 @@
+#!/bin/sh
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+  against=HEAD
+else
+  # Initial commit: diff against an empty tree object
+  against=$(git hash-object -t tree /dev/null)
+fi
+
+# Get the diff of the staged files with 100 lines of context
+diff=$(git diff --cached -U100 $against)
+
+prompt="
+You are a coding expert.
+Review the following code diff and give me suggestions.
+
+If you think the code is correct, output 'OK' with nothing else.
+Otherwise, output suggestions in markdown format.
+
+<diff>
+$diff
+</diff>
+"
+
+output=$(./defect --model=bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0 "$prompt")
+
+if [ "$output" != "OK" ]; then
+  echo $output
+  exit 1
+fi
