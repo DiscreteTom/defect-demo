@@ -1,0 +1,84 @@
+on:
+  push:
+    # only trigger on branches, not on tags
+    branches: "**"
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          role-to-assume: ${{ secrets.ROLE_ARN }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.AWS_REGION }}
+
+      # download the latest defect binary
+      - run: |
+          wget https://github.com/DiscreteTom/defect/releases/latest/download/defect
+
+      # get the diff of the latest commit
+      - run: |
+          git diff -U100 HEAD^ HEAD > diff
+
+      # review the diff
+      - run: |
+          diff=$(cat diff)
+
+          prompt="
+          You are a coding expert.
+          Review the following code diff and give me suggestions.
+
+          If you think the code is correct, output 'OK' with nothing else.
+          Otherwise, output suggestions in markdown format.
+
+          <diff>
+          $diff
+          </diff>
+          "
+
+          output=$(defect "$prompt")
+
+          if [ "$output" != "OK" ]; then
+            echo "$output"
+
+            commit=$(git rev-parse HEAD)
+            escaped_output=$(jq -n --arg val "$output" '$val')
+            body="{\"commit\":\"$commit\",\"feedback\":\"$escaped_output\"}"
+            curl -X POST -H "Content-Type: application/json" -d "$body" "$WEBHOOK"
+
+            metrics_prompt="
+            Below is a code review feedback,
+            tell me how many suggestions are there.
+            You should output a JSON object with the following format:
+
+            <format>
+            {"suggestions": 123}
+            </format>
+
+            You should only output the JSON object with nothing else.
+
+            <feedback>
+            $output
+            </feedback>
+            "
+            metrics=$(defect "$metrics_prompt")
+            timestamp=$(date +%s)
+            echo "$metrics" > $timestamp.json
+            date=$(date +'%Y/%m/%d')
+            author=$(git log -1 --pretty=format:'%an')
+            aws s3 cp $timestamp.json "s3://$BUCKET_AND_PREFIX/$date/$author/$timestamp.json"
+
+            exit 1
+          fi
+        env:
+          WEBHOOK: ${{ secrets.WEBHOOK }}
+          BUCKET_AND_PREFIX: ${{ secrets.BUCKET_AND_PREFIX }}
