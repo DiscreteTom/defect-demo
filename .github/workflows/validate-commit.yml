@@ -48,7 +48,7 @@ jobs:
           </diff>
           "
 
-          output=$(defect "$prompt")
+          output=$(./defect "$prompt")
 
           if [ "$output" != "OK" ]; then
             echo "$output"
@@ -73,7 +73,7 @@ jobs:
             $output
             </feedback>
             "
-            metrics=$(defect "$metrics_prompt")
+            metrics=$(./defect "$metrics_prompt")
             timestamp=$(date +%s)
             echo "$metrics" > $timestamp.json
             date=$(date +'%Y/%m/%d')
