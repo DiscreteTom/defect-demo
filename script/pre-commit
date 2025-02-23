@@ -24,7 +24,7 @@ $diff
 "
 
 # uncomment the line below to see the prompt
-# echo "prompt"
+# echo "$prompt"
 
 output=$(./defect --model=bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0 "$prompt")
 
