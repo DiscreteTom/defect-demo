@@ -5,6 +5,7 @@
 ```bash
 # download defect binary
 wget https://github.com/DiscreteTom/defect/releases/latest/download/defect
+chmod +x defect
 
 # setup pre-commit git hook
 cp ./script/pre-commit .git/hooks
