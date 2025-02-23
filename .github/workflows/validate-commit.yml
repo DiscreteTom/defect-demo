@@ -49,7 +49,7 @@ jobs:
           </diff>
           "
 
-          output=$(./defect "$prompt")
+          output=$(./defect --model=bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0 "$prompt")
 
           if [ "$output" != "OK" ]; then
             echo "$output"
@@ -74,7 +74,7 @@ jobs:
             $output
             </feedback>
             "
-            metrics=$(./defect "$metrics_prompt")
+            metrics=$(./defect --model=bedrock/us.anthropic.claude-3-5-sonnet-20241022-v2:0 "$metrics_prompt")
             timestamp=$(date +%s)
             echo "$metrics" > $timestamp.json
             date=$(date +'%Y/%m/%d')
