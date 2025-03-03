@@ -4,7 +4,9 @@
 
 ```bash
 # download defect binary
-wget https://github.com/DiscreteTom/defect/releases/latest/download/defect
+wget https://github.com/DiscreteTom/defect/releases/download/v0.3.1/defect-v0.3.1-x86_64-unknown-linux-musl.zip
+unzip defect-v0.3.1-x86_64-unknown-linux-musl.zip
+rm defect-v0.3.1-x86_64-unknown-linux-musl.zip
 chmod +x defect
 
 # setup pre-commit git hook
