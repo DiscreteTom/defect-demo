@@ -6,7 +6,7 @@ In this demo we will use `defect` with AWS Bedrock LLMs to review code.
 
 ### Setup
 
-Making sure you are running on a Linux x86_64 environment.
+Making sure you are running on a Linux x86_64 environment, and have AWS credentials set.
 
 ```bash
 # download defect binary
@@ -62,3 +62,5 @@ git commit -m "test"
 See the [`.github/workflows/validate-commit.yml`](./.github/workflows/validate-commit.yml) file for the workflow file.
 
 See the [GitHub Actions](https://github.com/DiscreteTom/defect-demo/actions) page for workflow runs.
+
+The workflow has AWS credentials set according to [this blog](https://aws.amazon.com/blogs/security/use-iam-roles-to-connect-github-actions-to-actions-in-aws/).
