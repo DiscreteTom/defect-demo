@@ -1,6 +1,12 @@
 # Demo of [Defect](https://github.com/DiscreteTom/defect)
 
-## Setup
+In this demo we will use `defect` with AWS Bedrock LLMs to review code.
+
+## Git Hook
+
+### Setup
+
+Making sure you are running on a Linux x86_64 environment.
 
 ```bash
 # download defect binary
@@ -13,10 +19,6 @@ chmod +x defect
 cp ./scripts/pre-commit .git/hooks
 chmod +x .git/hooks/pre-commit
 ```
-
-## Test
-
-### Git Hook
 
 Save the following code to a file, e.g. `bad.py`.
 
@@ -52,3 +54,11 @@ Commit the change:
 git add .
 git commit -m "test"
 ```
+
+`git` should reject the commit with suggestions printed.
+
+## GitHub Actions
+
+See the [`.github/workflows/validate-commit.yml`](./.github/workflows/validate-commit.yml) file for the workflow file.
+
+See the [GitHub Actions](https://github.com/DiscreteTom/defect-demo/actions) page for workflow runs.
