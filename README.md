@@ -62,7 +62,7 @@ git commit -m "test"
 
 ## GitHub Actions
 
-See the [`.github/workflows/validate-commit.yml`](./.github/workflows/validate-commit.yml) file for the workflow file.
+See the [`.github/workflows/`](./.github/workflows/) folder for the workflow files.
 
 See the [GitHub Actions](https://github.com/DiscreteTom/defect-demo/actions) page for workflow runs.
 
