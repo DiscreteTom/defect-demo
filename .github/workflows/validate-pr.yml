@@ -27,7 +27,7 @@ jobs:
       - name: Setup defect
         uses: DiscreteTom/setup-defect@v0.1.1
         with:
-          version: "0.3.2"
+          version: "0.3.3"
 
       - name: Configure AWS credentials to use AWS Bedrock models
         uses: aws-actions/configure-aws-credentials@v4.1.0

@@ -13,9 +13,9 @@ Making sure you are running on a Linux x86_64 environment, and have AWS credenti
 
 ```bash
 # download defect binary
-wget https://github.com/DiscreteTom/defect/releases/download/v0.3.2/defect-v0.3.2-x86_64-unknown-linux-musl.zip
-unzip defect-v0.3.2-x86_64-unknown-linux-musl.zip
-rm defect-v0.3.2-x86_64-unknown-linux-musl.zip
+wget https://github.com/DiscreteTom/defect/releases/download/v0.3.3/defect-v0.3.3-x86_64-unknown-linux-musl.zip
+unzip defect-v0.3.3-x86_64-unknown-linux-musl.zip
+rm defect-v0.3.3-x86_64-unknown-linux-musl.zip
 chmod +x defect
 
 # setup pre-commit git hook
