@@ -2,6 +2,9 @@
 
 In this demo we will use `defect` with AWS Bedrock LLMs to review code.
 
+> [!NOTE]
+> The prompt used in this demo will more likely to give suggestions, which might be annoying. In real world, you should modify the prompt to only check for the specific issues you care about.
+
 ## Git Hook
 
 ### Setup
