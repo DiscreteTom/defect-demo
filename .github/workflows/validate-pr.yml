@@ -1,0 +1,116 @@
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the origin/main branch
+        run: |
+          git fetch origin main:refs/remotes/origin/main
+
+      - name: Get the diff
+        run: |
+          git diff origin/main HEAD > /tmp/diff
+          cat /tmp/diff
+
+      - name: Setup defect
+        run: |
+          mkdir -p /tmp/defect
+          cd /tmp/defect
+          wget https://github.com/DiscreteTom/defect/releases/download/v0.3.2/defect-v0.3.2-x86_64-unknown-linux-musl.zip
+          unzip defect-v0.3.2-x86_64-unknown-linux-musl.zip
+          rm defect-v0.3.2-x86_64-unknown-linux-musl.zip
+          chmod +x defect
+          echo /tmp/defect >> $GITHUB_PATH
+
+      - name: Configure AWS credentials to use AWS Bedrock models
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          role-to-assume: ${{ secrets.ROLE_ARN }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Review the diff
+        run: |
+          diff=$(cat /tmp/diff)
+
+          prompt="
+          You are a coding expert.
+          Review the following code diff and give me suggestions.
+
+          If you think the code is correct, output 'OK' with nothing else.
+          Otherwise, output suggestions in markdown format.
+
+          <diff>
+          $diff
+          </diff>
+          "
+
+          defect --schema=bedrock --model=us.anthropic.claude-3-5-sonnet-20241022-v2:0 "$prompt" > /tmp/suggestions
+          cat /tmp/suggestions
+
+      - name: Send Webhook if suggestions are not empty
+        env:
+          WEBHOOK: ${{ secrets.WEBHOOK }}
+        run: |
+          suggestions=$(cat /tmp/suggestions)
+
+          if [ "$suggestions" = "OK" ]; then
+            exit 0
+          fi
+
+          commit=$(git rev-parse HEAD)
+          escaped_suggestions=$(jq -n --arg val "$suggestions" '$val')
+          body="{\"commit\":\"$commit\",\"feedback\":$escaped_suggestions}"
+          curl -X POST -H "Content-Type: application/json" -d "$body" "$WEBHOOK"
+
+      - name: Send Metrics if suggestions are not empty
+        env:
+          BUCKET_AND_PREFIX: ${{ secrets.BUCKET_AND_PREFIX }}
+        run: |
+          suggestions=$(cat /tmp/suggestions)
+
+          if [ "$suggestions" = "OK" ]; then
+            exit 0
+          fi
+
+          metrics_prompt="
+          Below is a code review feedback,
+          tell me how many suggestions are there.
+          You should output a JSON object with the following format:
+
+          <format>
+          {\"suggestions\": 123}
+          </format>
+
+          You should only output the JSON object with nothing else.
+
+          <feedback>
+          $suggestions
+          </feedback>
+          "
+          metrics=$(defect --schema=bedrock --model=us.anthropic.claude-3-5-sonnet-20241022-v2:0 "$metrics_prompt")
+          timestamp=$(date +%s)
+          echo "$metrics" > $timestamp.json
+          date=$(date +'%Y/%m/%d')
+          author=$(git log -1 --pretty=format:'%an')
+          aws s3 cp $timestamp.json "s3://$BUCKET_AND_PREFIX/$date/$author/$timestamp.json"
+
+      - name: Abort if suggestions are not empty
+        run: |
+          suggestions=$(cat /tmp/suggestions)
+
+          if [ "$suggestions" != "OK" ]; then
+            exit 1
+          fi
